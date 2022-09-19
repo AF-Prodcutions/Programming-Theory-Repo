@@ -10,11 +10,14 @@ public class PlayerController : MonoBehaviour
     public bool isOnGround = true;
     public bool gameOver;
     private Animator playerAnim;
-    public ParticleSystem explosionParticle;
-    public ParticleSystem dirtParticle;
-    public AudioClip jumpSound;
-    public AudioClip crashSound;
+    [SerializeField] private ParticleSystem explosionParticle;
+    [SerializeField] private ParticleSystem powerParticle;
+    [SerializeField] private ParticleSystem dirtParticle;
+    [SerializeField] private AudioClip jumpSound;
+    [SerializeField] private AudioClip crashSound;
     private AudioSource playerAudio;
+    public bool hasPowerup = false;
+    [SerializeField] private GameObject powerUpIndicator;
 
     // Start is called before the first frame update
     void Start()
@@ -36,6 +39,8 @@ public class PlayerController : MonoBehaviour
             dirtParticle.Stop();
             playerAudio.PlayOneShot(jumpSound, 1.0f);
         }
+
+        powerUpIndicator.transform.position = transform.position + new Vector3(0, 0.5f, 0);
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -44,7 +49,13 @@ public class PlayerController : MonoBehaviour
             isOnGround = true;
             dirtParticle.Play();
         } 
-        else if (collision.gameObject.CompareTag("Obstacle"))
+        else if (collision.gameObject.CompareTag("Obstacle") && hasPowerup)
+        {
+            powerParticle.Play();
+            playerAudio.PlayOneShot(crashSound, 1.0f);
+            collision.gameObject.SetActive(false);
+
+        } else if (collision.gameObject.CompareTag("Obstacle") && !hasPowerup)
         {
             gameOver = true;
             playerAnim.SetBool("Death_b", true);
@@ -52,7 +63,25 @@ public class PlayerController : MonoBehaviour
             explosionParticle.Play();
             dirtParticle.Stop();
             playerAudio.PlayOneShot(crashSound, 1.0f);
+            powerUpIndicator.SetActive(false);
         }
         
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Powerup"))
+        {
+            hasPowerup = true;
+            Destroy(other.gameObject);
+            powerUpIndicator.SetActive(true);
+            StartCoroutine(PowerCountdownRoutine());
+        }
+    }
+    IEnumerator PowerCountdownRoutine()
+    {
+        yield return new WaitForSeconds(3);
+        hasPowerup = false;
+        powerUpIndicator.SetActive(false);
     }
 }

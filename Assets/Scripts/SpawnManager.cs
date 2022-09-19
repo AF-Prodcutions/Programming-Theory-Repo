@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
-    public GameObject obstaclePrefab;
+    public GameObject[] obstaclePrefab;
+    public GameObject powerupPrefab;
     private Vector3 spawnPosition = new Vector3 (25,0,0);
+    private Vector3 powerupSpawnPosition = new Vector3(13, 4, 0);
     private float startDelay = 2;
     private float repeatRate = 2;
     private PlayerController playerControllerScript;
@@ -14,20 +16,23 @@ public class SpawnManager : MonoBehaviour
     void Start()
     {
         InvokeRepeating("SpawnObstacle", startDelay, repeatRate);
-        playerControllerScript = GameObject.Find("Player").GetComponent<PlayerController>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        InvokeRepeating("SpawnPowerup", startDelay * 2, repeatRate*2);
+        playerControllerScript = GameObject.Find("Player").GetComponent<PlayerController>();   
     }
     void SpawnObstacle()
     {
         if (playerControllerScript.gameOver == false)
         {
-            Instantiate(obstaclePrefab, spawnPosition, obstaclePrefab.transform.rotation);
+            int obstacleIndex = Random.Range(0, obstaclePrefab.Length);
+            Instantiate(obstaclePrefab[obstacleIndex], spawnPosition, obstaclePrefab[obstacleIndex].transform.rotation);
         }
-        
     }
+    void SpawnPowerup()
+    {
+        if (playerControllerScript.gameOver == false)
+        {
+            Instantiate(powerupPrefab, powerupSpawnPosition, powerupPrefab.transform.rotation);
+        }
+    }
+    
 }
